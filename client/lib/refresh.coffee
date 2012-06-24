@@ -34,6 +34,7 @@ initDragging = (pageElement) ->
   storyElement.sortable
     update: handleDragging
     connectWith: '.page .story'
+    items: ":not(.ui-sort-disabled)"
 
 initAddButton = (pageElement) ->
   pageElement.find(".add-factory").live "click", (evt) ->
