@@ -10,22 +10,30 @@ findScrollContainer = ->
     $("body, html").scrollLeft(4).filter(-> $(this).scrollLeft() > 0).scrollTop(0)
 
 scrollTo = (el) ->
+  debugger
+  
   active.scrollContainer ?= findScrollContainer()
   bodyWidth = $("body").width()
   minX = active.scrollContainer.scrollLeft()
   maxX = minX + bodyWidth
   wiki.log 'scrollTo', el, el.position()
-  target = el.position().left
   width = el.outerWidth(true)
   contentWidth = $(".page").outerWidth(true) * $(".page").size()
-
-  if target < minX
+  target = el.position().left - (bodyWidth - width) / 2
+  
+  # we're just prototyping, so this is ok... but seriously, don't do this
+  if target < 0
+    $(".page").css
+      position: "relative"
+      left: (val) ->
+        $(this).position().left - target
+    active.scrollContainer.animate scrollLeft: 0
+  else 
+    $(".page").css
+      position: ""
+      left: ""
     active.scrollContainer.animate scrollLeft: target
-  else if target + width > maxX
-    active.scrollContainer.animate scrollLeft: target - (bodyWidth - width)
-  else if maxX > $(".pages").outerWidth()
-    active.scrollContainer.animate scrollLeft: Math.min(target, contentWidth - bodyWidth)
-
+  
 active.set = (el) ->
   el = $(el)
   wiki.log 'set active', el
