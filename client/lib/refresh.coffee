@@ -43,6 +43,7 @@ initDragging = (pageElement) ->
   storyElement.sortable
     update: handleDragging
     connectWith: '.page .story'
+    handle: '.handle'
 
 initAddButton = (pageElement) ->
   pageElement.find(".add-factory").live "click", (evt) ->
@@ -133,7 +134,7 @@ module.exports = refresh = wiki.refresh = ->
 
       $.each page.story, (i, item) ->
         item = item[0] if $.isArray item # unwrap accidentally wrapped items
-        div = $("<div />").addClass("item").addClass(item.type).attr("data-id", item.id)
+        div = $("<div />").addClass("item").addClass(item.type).attr("data-id", item.id).append("<div class='handle'></div>")
         storyElement.append div
         plugin.do div, item
 

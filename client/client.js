@@ -448,7 +448,7 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
         id: util.randomBytes(8),
         text: initialText
       };
-      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "></div>");
+      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "><div class='handle'></div></div>");
       itemElement.data('item', item).data('pageElement', pageElement);
       beforeElement.after(itemElement);
       plugin["do"](itemElement, item);
@@ -1377,7 +1377,7 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
   window.plugins = {
     paragraph: {
       emit: function(div, item) {
-        return div.append("<p>" + (wiki.resolveLinks(item.text)) + "</p>");
+        return div.append("<div class='handle'></div><p>" + (wiki.resolveLinks(item.text)) + "</p>");
       },
       bind: function(div, item) {
         return div.dblclick(function() {
@@ -1458,7 +1458,8 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
     storyElement = pageElement.find('.story');
     return storyElement.sortable({
       update: handleDragging,
-      connectWith: '.page .story'
+      connectWith: '.page .story',
+      handle: '.handle'
     });
   };
 
@@ -1564,7 +1565,7 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
           if ($.isArray(item)) {
             item = item[0];
           }
-          div = $("<div />").addClass("item").addClass(item.type).attr("data-id", item.id);
+          div = $("<div />").addClass("item").addClass(item.type).attr("data-id", item.id).append("<div class='handle'></div>");
           storyElement.append(div);
           return plugin["do"](div, item);
         });

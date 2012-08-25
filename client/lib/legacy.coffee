@@ -83,7 +83,7 @@ $ ->
       id: util.randomBytes(8)
       text: initialText
     itemElement = $ """
-      <div class="item paragraph" data-id=#{item.id}></div>
+      <div class="item paragraph" data-id=#{item.id}><div class='handle'></div></div>
                     """
     itemElement
       .data('item', item)

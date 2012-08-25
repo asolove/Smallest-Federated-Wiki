@@ -2,7 +2,9 @@
   color: #bb0000; }
 
 a {
-  text-decoration: none; }
+  text-decoration: none; 
+  color: #68b;
+}
 
 body {
   top: 0;
@@ -81,7 +83,6 @@ footer {
   width: 100%; }
 
 .journal {
-  width: 420px;
   overflow-x: hidden;
   margin-top: 2px;
   clear: both;
@@ -187,7 +188,6 @@ p.readout {
 .page {
   float: left;
   margin: 8px;
-  padding: 0 31px;
   width: 430px;
   background-color: white;
   height: 100%;
@@ -199,6 +199,14 @@ p.readout {
 
 .page.local {
   border: 3px solid #EE8;
+}
+
+.page h1 {
+  margin: 20px 30px;
+}
+.page .journal,
+.page .footer {
+  margin: 5px 30px;
 }
 
 .factory,
@@ -282,4 +290,35 @@ textarea {
 .ghost {
   opacity: 0.6;
   border-color: #eef2fe;
+}
+
+.item { 
+  position: relative;
+  padding: 5px 30px;
+}
+
+.handle {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  width: 28px;
+}
+.handle:before {
+  display: block;
+  content: " ";
+  height: 100%;
+  width: 6px;
+  margin: 0px 11px;
+  background-color: #9cf;
+  border: 1px solid #8be;
+  visibility: hidden;
+}
+
+.item:hover .handle:before {
+  visibility: visible;
+}
+
+.item.paragraph p {
+  margin: 0px;
 }
