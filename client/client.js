@@ -467,79 +467,82 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
       });
     };
     textEditor = wiki.textEditor = function(div, item, caretPos, doubleClicked) {
-      var original, textarea, _ref;
       if (div.hasClass('textEditing')) {
         return;
       }
       div.addClass('textEditing');
-      textarea = $("<textarea>" + (original = (_ref = item.text) != null ? _ref : '') + "</textarea>").focusout(function() {
-        div.removeClass('textEditing');
-        if (item.text = textarea.val()) {
-          plugin["do"](div.empty(), item);
-          if (item.text === original) {
-            return;
+      return wiki.getScript("http://jquery-elastic.googlecode.com/svn/trunk/jquery.elastic.source.js", function() {
+        var original, textarea, _ref;
+        textarea = $("<textarea>" + (original = (_ref = item.text) != null ? _ref : '') + "</textarea>").focusout(function() {
+          div.removeClass('textEditing');
+          if (item.text = textarea.val()) {
+            plugin["do"](div.empty(), item);
+            if (item.text === original) {
+              return;
+            }
+            pageHandler.put(div.parents('.page:first'), {
+              type: 'edit',
+              id: item.id,
+              item: item
+            });
+          } else {
+            pageHandler.put(div.parents('.page:first'), {
+              type: 'remove',
+              id: item.id
+            });
+            div.remove();
           }
-          pageHandler.put(div.parents('.page:first'), {
-            type: 'edit',
-            id: item.id,
-            item: item
-          });
-        } else {
-          pageHandler.put(div.parents('.page:first'), {
-            type: 'remove',
-            id: item.id
-          });
-          div.remove();
-        }
-        return null;
-      }).bind('keydown', function(e) {
-        var middle, pageElement, prefix, prevItem, prevTextLen, sel, suffix, text;
-        if ((e.altKey || e.ctlKey || e.metaKey) && e.which === 83) {
-          textarea.focusout();
-          return false;
-        }
-        if (item.type === 'paragraph') {
-          sel = util.getSelectionPos(textarea);
-          if (e.which === $.ui.keyCode.BACKSPACE && sel.start === 0 && sel.start === sel.end) {
-            prevItem = getItem(div.prev());
-            if (prevItem.type !== 'paragraph') {
-              return false;
-            }
-            prevTextLen = prevItem.text.length;
-            prevItem.text += textarea.val();
-            textarea.val('');
-            textEditor(div.prev(), prevItem, prevTextLen);
-            return false;
-          } else if (e.which === $.ui.keyCode.ENTER && item.type === 'paragraph') {
-            if (!sel) {
-              return false;
-            }
-            text = textarea.val();
-            prefix = text.substring(0, sel.start);
-            if (sel.start !== sel.end) {
-              middle = text.substring(sel.start, sel.end);
-            }
-            suffix = text.substring(sel.end);
-            textarea.val(prefix);
+          return null;
+        }).bind('keydown', function(e) {
+          var middle, pageElement, prefix, prevItem, prevTextLen, sel, suffix, text;
+          if ((e.altKey || e.ctlKey || e.metaKey) && e.which === 83) {
             textarea.focusout();
-            pageElement = div.parent().parent();
-            createTextElement(pageElement, div, suffix);
-            if (middle != null) {
-              createTextElement(pageElement, div, middle);
-            }
             return false;
           }
+          if (item.type === 'paragraph') {
+            sel = util.getSelectionPos(textarea);
+            if (e.which === $.ui.keyCode.BACKSPACE && sel.start === 0 && sel.start === sel.end) {
+              prevItem = getItem(div.prev());
+              if (prevItem.type !== 'paragraph') {
+                return false;
+              }
+              prevTextLen = prevItem.text.length;
+              prevItem.text += textarea.val();
+              textarea.val('');
+              textEditor(div.prev(), prevItem, prevTextLen);
+              return false;
+            } else if (e.which === $.ui.keyCode.ENTER && item.type === 'paragraph') {
+              if (!sel) {
+                return false;
+              }
+              text = textarea.val();
+              prefix = text.substring(0, sel.start);
+              if (sel.start !== sel.end) {
+                middle = text.substring(sel.start, sel.end);
+              }
+              suffix = text.substring(sel.end);
+              textarea.val(prefix);
+              textarea.focusout();
+              pageElement = div.parent().parent();
+              createTextElement(pageElement, div, suffix);
+              if (middle != null) {
+                createTextElement(pageElement, div, middle);
+              }
+              return false;
+            }
+          }
+        });
+        div.html(textarea);
+        if (caretPos != null) {
+          util.setCaretPosition(textarea, caretPos);
+        } else if (doubleClicked) {
+          util.setCaretPosition(textarea, textarea.val().length);
+          textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
+        } else {
+          textarea.focus();
         }
+        return textarea.elastic();
       });
-      div.html(textarea);
-      if (caretPos != null) {
-        return util.setCaretPosition(textarea, caretPos);
-      } else if (doubleClicked) {
-        util.setCaretPosition(textarea, textarea.val().length);
-        return textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
-      } else {
-        return textarea.focus();
-      }
     };
     getItem = wiki.getItem = function(element) {
       if ($(element).length > 0) {

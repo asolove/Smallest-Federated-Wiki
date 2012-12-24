@@ -98,54 +98,57 @@ $ ->
   textEditor = wiki.textEditor = (div, item, caretPos, doubleClicked) ->
     return if div.hasClass 'textEditing'
     div.addClass 'textEditing'
-    textarea = $("<textarea>#{original = item.text ? ''}</textarea>")
-      .focusout ->
-        div.removeClass 'textEditing'
-        if item.text = textarea.val()
-          plugin.do div.empty(), item
-          return if item.text == original
-          pageHandler.put div.parents('.page:first'), {type: 'edit', id: item.id, item: item}
-        else
-          pageHandler.put div.parents('.page:first'), {type: 'remove', id: item.id}
-          div.remove()
-        null
-      .bind 'keydown', (e) ->
-        if (e.altKey || e.ctlKey || e.metaKey) and e.which == 83 #alt-s
-          textarea.focusout()
-          return false
-        # provides automatic new paragraphs on enter and concatenation on backspace
-        if item.type is 'paragraph' 
-          sel = util.getSelectionPos(textarea) # position of caret or selected text coords
-          if e.which is $.ui.keyCode.BACKSPACE and sel.start is 0 and sel.start is sel.end 
-            prevItem = getItem(div.prev())
-            return false unless prevItem.type is 'paragraph'
-            prevTextLen = prevItem.text.length
-            prevItem.text += textarea.val()
-            textarea.val('') # Need current text area to be empty. Item then gets deleted.
-            # caret needs to be between the old text and the new appended text
-            textEditor div.prev(), prevItem, prevTextLen
-            return false
-          else if e.which is $.ui.keyCode.ENTER and item.type is 'paragraph'
-            return false unless sel
-            text = textarea.val()
-            prefix = text.substring 0, sel.start
-            middle = text.substring(sel.start, sel.end) if sel.start isnt sel.end
-            suffix = text.substring(sel.end)
-            textarea.val(prefix)
+    
+    wiki.getScript "http://jquery-elastic.googlecode.com/svn/trunk/jquery.elastic.source.js", ->
+      
+      textarea = $("<textarea>#{original = item.text ? ''}</textarea>").elastic()
+        .focusout ->
+          div.removeClass 'textEditing'
+          if item.text = textarea.val()
+            plugin.do div.empty(), item
+            return if item.text == original
+            pageHandler.put div.parents('.page:first'), {type: 'edit', id: item.id, item: item}
+          else
+            pageHandler.put div.parents('.page:first'), {type: 'remove', id: item.id}
+            div.remove()
+          null
+        .bind 'keydown', (e) ->
+          if (e.altKey || e.ctlKey || e.metaKey) and e.which == 83 #alt-s
             textarea.focusout()
-            pageElement = div.parent().parent()
-            createTextElement(pageElement, div, suffix)
-            createTextElement(pageElement, div, middle) if middle?
             return false
-    div.html textarea
-    if caretPos?
-      util.setCaretPosition textarea, caretPos
-    else if doubleClicked # we want the caret to be at the end
-      util.setCaretPosition textarea, textarea.val().length
-      #scrolls to bottom of text area
-      textarea.scrollTop(textarea[0].scrollHeight - textarea.height())
-    else
-      textarea.focus()
+          # provides automatic new paragraphs on enter and concatenation on backspace
+          if item.type is 'paragraph' 
+            sel = util.getSelectionPos(textarea) # position of caret or selected text coords
+            if e.which is $.ui.keyCode.BACKSPACE and sel.start is 0 and sel.start is sel.end 
+              prevItem = getItem(div.prev())
+              return false unless prevItem.type is 'paragraph'
+              prevTextLen = prevItem.text.length
+              prevItem.text += textarea.val()
+              textarea.val('') # Need current text area to be empty. Item then gets deleted.
+              # caret needs to be between the old text and the new appended text
+              textEditor div.prev(), prevItem, prevTextLen
+              return false
+            else if e.which is $.ui.keyCode.ENTER and item.type is 'paragraph'
+              return false unless sel
+              text = textarea.val()
+              prefix = text.substring 0, sel.start
+              middle = text.substring(sel.start, sel.end) if sel.start isnt sel.end
+              suffix = text.substring(sel.end)
+              textarea.val(prefix)
+              textarea.focusout()
+              pageElement = div.parent().parent()
+              createTextElement(pageElement, div, suffix)
+              createTextElement(pageElement, div, middle) if middle?
+              return false
+      div.html textarea
+      if caretPos?
+        util.setCaretPosition textarea, caretPos
+      else if doubleClicked # we want the caret to be at the end
+        util.setCaretPosition textarea, textarea.val().length
+        #scrolls to bottom of text area
+        textarea.scrollTop(textarea[0].scrollHeight - textarea.height())
+      else
+        textarea.focus()
 
   getItem = wiki.getItem = (element) ->
     $(element).data("item") or $(element).data('staticItem') if $(element).length > 0

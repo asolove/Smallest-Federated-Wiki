@@ -224,6 +224,7 @@ textarea {
   
 textarea {
   width: 100%;
+  height: 150px;
 }
 
 .clickable:hover {
@@ -234,10 +235,10 @@ textarea {
     width: 0.9%;
     margin: 0.01%;
     padding: 0.04%; } }
+    
 ::-webkit-scrollbar {
   width: 10px;
-  height: 10px;
-  margin-right: 10px; }
+  height: 10px; }
 
 ::-webkit-scrollbar-button:start:decrement,
 ::-webkit-scrollbar-button:end:increment {
@@ -247,13 +248,13 @@ textarea {
 
 ::-webkit-scrollbar-track-piece {
   background-color: #eeeeee;
-  -webkit-border-radius: 6px; }
+  -webkit-border-radius: 1px; }
 
 ::-webkit-scrollbar-thumb:vertical {
   height: 50px;
-  background-color: #cccccc;
+  background-color: #ddd;
   border: 1px solid #eeeeee;
-  -webkit-border-radius: 6px; }
+  -webkit-border-radius: 1px; }
 
 .factory {
   clear: both;
