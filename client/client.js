@@ -1350,17 +1350,7 @@ require.define("/lib/active.coffee",function(require,module,exports,__dirname,__
   active.scrollContainer = void 0;
 
   findScrollContainer = function() {
-    var scrolled;
-    scrolled = $("body, html").filter(function() {
-      return $(this).scrollLeft() > 0;
-    });
-    if (scrolled.length > 0) {
-      return scrolled;
-    } else {
-      return $("body, html").scrollLeft(12).filter(function() {
-        return $(this).scrollLeft() > 0;
-      }).scrollTop(0);
-    }
+    return $("#wrapper");
   };
 
   scrollTo = function(el) {
@@ -1374,6 +1364,7 @@ require.define("/lib/active.coffee",function(require,module,exports,__dirname,__
     target = el.position().left;
     width = el.outerWidth(true);
     contentWidth = $(".page").outerWidth(true) * $(".page").size();
+	
     if (target < minX) {
       return active.scrollContainer.animate({
         scrollLeft: target
