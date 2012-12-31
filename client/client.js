@@ -1538,6 +1538,25 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
     return window.plugins[pluginName] = pluginFn($);
   };
 
+	wiki.showMenu = function(opts){
+		// crap way to do this
+		$(".actionMenu").remove();
+		
+		var c = opts.container;
+		var menu = $("<div></div>").addClass("actionMenu hidden");
+		opts.items.forEach(function(item){
+			$("<a></a>").text(item).appendTo(menu);
+		});
+		menu.appendTo("body");
+		var pos = c.position();
+		menu.css({ position: 'absolute', left: pos.left, top: pos.top - 48 });
+		menu.removeClass("hidden");
+		menu.on("click", function(e){
+			menu.trigger($(e.target).text());
+		});
+		return menu;
+	};
+
   window.plugins = {
     paragraph: {
       emit: function(div, item) {
@@ -1545,7 +1564,15 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
       },
       bind: function(div, item) {
         return div.dblclick(function() {
-          return wiki.textEditor(div, item, null, true);
+					var menu = wiki.showMenu({
+						container: div,
+						items: ["Edit", "Delete", "Move"]
+					});
+					menu.on("Edit", function(){
+						wiki.textEditor(div, item, null, true);
+						menu.remove();
+					});
+          // return wiki.textEditor(div, item, null, true);
         });
       }
     },

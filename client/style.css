@@ -311,3 +311,39 @@ textarea {
   opacity: 0.6;
   border-color: #eef2fe;
 }
+
+.actionMenu {
+	opacity: 1;
+	-webkit-transition: opacity .2s ease-in-out;
+	padding: 0 10px;
+	position: absolute;
+	height: 40px;
+	background-color: black;
+	border-radius: 4px;
+	border: 1px solid black;
+	box-shadow: inset rgba(255,255,255,0.5) 1px 1px 1px;
+	color:#fff;
+}
+.actionMenu:after {
+	content: ' ';
+	display: block;
+	position: absolute;
+	left: 20px;
+	bottom: -7px;
+	width: 14px;
+	height: 14px;
+	background-color: black;
+	-webkit-transform: rotate(45deg);
+}
+.actionMenu a {
+	color: #fff;
+	font-weight: bold;
+	padding: 10px;
+	display: inline-block;
+	cursor: pointer;
+}
+
+
+.actionMenu.hidden {
+	opacity: 0;
+}
