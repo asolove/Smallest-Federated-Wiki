@@ -40,9 +40,12 @@ handleDragging = (evt, ui) ->
   action.id = item.id
   pageHandler.put thisPageElement, action
 
-initDragging = ($page) ->
-  $story = $page.find('.story')
-  $story.sortable(connectWith: '.page .story').on("sortupdate", handleDragging)
+initDragging = (pageElement) ->
+  storyElement = pageElement.find('.story')
+  storyElement.sortable
+    update: handleDragging
+    connectWith: '.page .story'
+    handle: '.handle'
 
 
 initAddButton = ($page) ->
@@ -202,6 +205,66 @@ module.exports = refresh = wiki.refresh = ->
       page.story[0].text = 'We could not find this page in the expected context.'
 
     wiki.buildPage( page, undefined, $page ).addClass('ghost')
+
+  buildPage = (data,siteFound) ->
+
+    if siteFound == 'local'
+      pageElement.addClass('local') 
+    else
+      pageElement.data('site', siteFound)
+
+    if not data?
+      pageElement.find('.item').each (i, each) ->
+        item = wiki.getItem($(each))
+        plugin.get item.type, (plugin) ->
+          plugin.bind $(each), item
+    else
+      page = $.extend(util.emptyPage(), data)
+      $(pageElement).data("data", page)
+      slug = $(pageElement).attr('id')
+      site = $(pageElement).data('site')
+
+      context = ['view']
+      context.push site if site?
+      addContext = (site) -> context.push site if site? and not _.include context, site
+      addContext action.site for action in page.journal.slice(0).reverse()
+      wiki.resolutionContext = context
+
+      wiki.log 'buildPage', slug, 'site', site, 'context', context.join ' => '
+      emitHeader pageElement, page
+
+      [storyElement, journalElement, footerElement] = ['story', 'journal', 'footer'].map (className) ->
+        $("<div />").addClass(className).appendTo(pageElement)
+
+      $.each page.story, (i, item) ->
+        item = item[0] if $.isArray item # unwrap accidentally wrapped items
+        div = $("<div />").addClass("item").addClass(item.type).attr("data-id", item.id).append("<div class='handle'></div>")
+        storyElement.append div
+        plugin.do div, item
+
+      $.each page.journal, (i, action) ->
+        wiki.addToJournal journalElement, action
+
+      journalElement.append """
+        <div class="control-buttons">
+          <a href="#" class="button fork-page" title="fork this page">#{util.symbols['fork']}</a>
+          <a href="#" class="button add-factory" title="add paragraph">#{util.symbols['add']}</a>
+        </div>
+                            """
+      footerElement
+        .append('<a id="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> . ')
+        .append("<a class=\"show-page-source\" href=\"/#{slug}.json?random=#{util.randomBytes(4)}\" title=\"source\">JSON</a>")
+
+      state.setUrl()
+
+    initDragging pageElement
+    initAddButton pageElement
+
+  createPage = ->
+    title = $("""a[href="/#{slug}.html"]:last""").text()
+    title or= slug
+    pageHandler.put $(pageElement), {type: 'create', id: util.randomBytes(8), item: {title}}
+    buildPage( {title} )
 
   registerNeighbors = (data, site) ->
     if _.include ['local', 'origin', 'view', null, undefined], site

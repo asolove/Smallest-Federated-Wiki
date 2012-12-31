@@ -330,7 +330,56 @@ exports.basename = function(path, ext) {
 exports.extname = function(path) {
   return splitPathRe.exec(path)[3] || '';
 };
+});
 
+require.define("__browserify_process",function(require,module,exports,__dirname,__filename,process){var process = module.exports = {};
+
+process.nextTick = (function () {
+    var queue = [];
+    var canPost = typeof window !== 'undefined'
+        && window.postMessage && window.addEventListener
+    ;
+    
+    if (canPost) {
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'browserify-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+    }
+    
+    return function (fn) {
+        if (canPost) {
+            queue.push(fn);
+            window.postMessage('browserify-tick', '*');
+        }
+        else setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    if (name === 'evals') return (require)('vm')
+    else throw new Error('No such module. (Possibly not yet loaded)')
+};
+
+(function () {
+    var cwd = '/';
+    var path;
+    process.cwd = function () { return cwd };
+    process.chdir = function (dir) {
+        if (!path) path = require('path');
+        cwd = path.resolve(dir, cwd);
+    };
+})();
 });
 
 require.define("__browserify_process",function(require,module,exports,__dirname,__filename,process,global){var process = module.exports = {};
@@ -392,6 +441,7 @@ process.binding = function (name) {
 });
 
 require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
+
   var active, pageHandler, plugin, refresh, resolveLinks, state, util,
     __slice = [].slice;
 
@@ -514,7 +564,7 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
         id: util.randomBytes(8),
         text: initialText
       };
-      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "></div>");
+      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "><div class='handle'></div></div>");
       itemElement.data('item', item).data('pageElement', pageElement);
       beforeElement.after(itemElement);
       plugin["do"](itemElement, item);
@@ -530,79 +580,85 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
       });
     };
     textEditor = wiki.textEditor = function(div, item, caretPos, doubleClicked) {
+
       var original, textarea, _ref;
+
       if (div.hasClass('textEditing')) {
         return;
       }
       div.addClass('textEditing');
-      textarea = $("<textarea>" + (original = (_ref = item.text) != null ? _ref : '') + "</textarea>").focusout(function() {
-        div.removeClass('textEditing');
-        if (item.text = textarea.val()) {
-          plugin["do"](div.empty(), item);
-          if (item.text === original) {
-            return;
+      return wiki.getScript("http://jquery-elastic.googlecode.com/svn/trunk/jquery.elastic.source.js", function() {
+        var original, textarea, _ref;
+        textarea = $("<textarea>" + (original = (_ref = item.text) != null ? _ref : '') + "</textarea>").focusout(function() {
+          div.removeClass('textEditing');
+          if (item.text = textarea.val()) {
+            plugin["do"](div.empty(), item);
+            if (item.text === original) {
+              return;
+            }
+            pageHandler.put(div.parents('.page:first'), {
+              type: 'edit',
+              id: item.id,
+              item: item
+            });
+          } else {
+            pageHandler.put(div.parents('.page:first'), {
+              type: 'remove',
+              id: item.id
+            });
+            div.remove();
           }
-          pageHandler.put(div.parents('.page:first'), {
-            type: 'edit',
-            id: item.id,
-            item: item
-          });
-        } else {
-          pageHandler.put(div.parents('.page:first'), {
-            type: 'remove',
-            id: item.id
-          });
-          div.remove();
-        }
-        return null;
-      }).bind('keydown', function(e) {
-        var middle, pageElement, prefix, prevItem, prevTextLen, sel, suffix, text;
-        if ((e.altKey || e.ctlKey || e.metaKey) && e.which === 83) {
-          textarea.focusout();
-          return false;
-        }
-        if (item.type === 'paragraph') {
-          sel = util.getSelectionPos(textarea);
-          if (e.which === $.ui.keyCode.BACKSPACE && sel.start === 0 && sel.start === sel.end) {
-            prevItem = getItem(div.prev());
-            if (prevItem.type !== 'paragraph') {
-              return false;
-            }
-            prevTextLen = prevItem.text.length;
-            prevItem.text += textarea.val();
-            textarea.val('');
-            textEditor(div.prev(), prevItem, prevTextLen);
-            return false;
-          } else if (e.which === $.ui.keyCode.ENTER && item.type === 'paragraph') {
-            if (!sel) {
-              return false;
-            }
-            text = textarea.val();
-            prefix = text.substring(0, sel.start);
-            if (sel.start !== sel.end) {
-              middle = text.substring(sel.start, sel.end);
-            }
-            suffix = text.substring(sel.end);
-            textarea.val(prefix);
+          return null;
+        }).bind('keydown', function(e) {
+          var middle, pageElement, prefix, prevItem, prevTextLen, sel, suffix, text;
+          if ((e.altKey || e.ctlKey || e.metaKey) && e.which === 83) {
             textarea.focusout();
-            pageElement = div.parent().parent();
-            createTextElement(pageElement, div, suffix);
-            if (middle != null) {
-              createTextElement(pageElement, div, middle);
-            }
             return false;
           }
+          if (item.type === 'paragraph') {
+            sel = util.getSelectionPos(textarea);
+            if (e.which === $.ui.keyCode.BACKSPACE && sel.start === 0 && sel.start === sel.end) {
+              prevItem = getItem(div.prev());
+              if (prevItem.type !== 'paragraph') {
+                return false;
+              }
+              prevTextLen = prevItem.text.length;
+              prevItem.text += textarea.val();
+              textarea.val('');
+              textEditor(div.prev(), prevItem, prevTextLen);
+              return false;
+            } else if (e.which === $.ui.keyCode.ENTER && item.type === 'paragraph') {
+              if (!sel) {
+                return false;
+              }
+              text = textarea.val();
+              prefix = text.substring(0, sel.start);
+              if (sel.start !== sel.end) {
+                middle = text.substring(sel.start, sel.end);
+              }
+              suffix = text.substring(sel.end);
+              textarea.val(prefix);
+              textarea.focusout();
+              pageElement = div.parent().parent();
+              createTextElement(pageElement, div, suffix);
+              if (middle != null) {
+                createTextElement(pageElement, div, middle);
+              }
+              return false;
+            }
+          }
+        });
+        div.html(textarea);
+        if (caretPos != null) {
+          util.setCaretPosition(textarea, caretPos);
+        } else if (doubleClicked) {
+          util.setCaretPosition(textarea, textarea.val().length);
+          textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
+        } else {
+          textarea.focus();
         }
+        return textarea.elastic();
       });
-      div.html(textarea);
-      if (caretPos != null) {
-        return util.setCaretPosition(textarea, caretPos);
-      } else if (doubleClicked) {
-        util.setCaretPosition(textarea, textarea.val().length);
-        return textarea.scrollTop(textarea[0].scrollHeight - textarea.height());
-      } else {
-        return textarea.focus();
-      }
     };
     getItem = wiki.getItem = function(element) {
       if ($(element).length > 0) {
@@ -752,6 +808,7 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
     }).delegate('.fork-page', 'click', function(e) {
       var item, pageElement, remoteSite;
       pageElement = $(e.target).parents('.page');
+
       if (pageElement.hasClass('local')) {
         if (!useLocalStorage()) {
           item = pageElement.data('data');
@@ -769,6 +826,7 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
           });
         }
       }
+
     }).delegate('.action', 'hover', function() {
       var id;
       id = $(this).attr('data-id');
@@ -822,10 +880,10 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
   });
 
 }).call(this);
-
 });
 
 require.define("/lib/util.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
+
   var util;
 
   module.exports = wiki.util = util = {};
@@ -971,7 +1029,6 @@ require.define("/lib/util.coffee",function(require,module,exports,__dirname,__fi
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/synopsis.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
@@ -1097,6 +1154,7 @@ require.define("/lib/pageHandler.coffee",function(require,module,exports,__dirna
   pageHandler.get = function(_arg) {
     var localPage, pageInformation, whenGotten, whenNotGotten;
     whenGotten = _arg.whenGotten, whenNotGotten = _arg.whenNotGotten, pageInformation = _arg.pageInformation;
+
     if (!pageInformation.site) {
       if (localPage = pageFromLocalStorage(pageInformation.slug)) {
         if (pageInformation.rev) {
@@ -1223,7 +1281,6 @@ require.define("/lib/pageHandler.coffee",function(require,module,exports,__dirna
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/state.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
@@ -1339,10 +1396,10 @@ require.define("/lib/state.coffee",function(require,module,exports,__dirname,__f
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/active.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
+
   var active, findScrollContainer, scrollTo;
 
   module.exports = active = {};
@@ -1387,10 +1444,10 @@ require.define("/lib/active.coffee",function(require,module,exports,__dirname,__
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/revision.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
+
   var create;
 
   create = function(revIndex, data) {
@@ -1427,6 +1484,7 @@ require.define("/lib/revision.coffee",function(require,module,exports,__dirname,
           break;
         case 'move':
           items = {};
+
           for (_j = 0, _len1 = revStory.length; _j < _len1; _j++) {
             storyItem = revStory[_j];
             items[storyItem.id] = storyItem;
@@ -1456,10 +1514,10 @@ require.define("/lib/revision.coffee",function(require,module,exports,__dirname,
   exports.create = create;
 
 }).call(this);
-
 });
 
 require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
+
   var getScript, plugin, scripts, util;
 
   util = require('./util.coffee');
@@ -1560,7 +1618,7 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
   window.plugins = {
     paragraph: {
       emit: function(div, item) {
-        return div.append("<p>" + (wiki.resolveLinks(item.text)) + "</p>");
+        return div.append("<div class='handle'></div><p>" + (wiki.resolveLinks(item.text)) + "</p>");
       },
       bind: function(div, item) {
         return div.dblclick(function() {
@@ -1613,7 +1671,6 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
@@ -1665,12 +1722,14 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
     return pageHandler.put(thisPageElement, action);
   };
 
-  initDragging = function($page) {
-    var $story;
-    $story = $page.find('.story');
-    return $story.sortable({
-      connectWith: '.page .story'
-    }).on("sortupdate", handleDragging);
+  initDragging = function(pageElement) {
+    var storyElement;
+    storyElement = pageElement.find('.story');
+    return storyElement.sortable({
+      update: handleDragging,
+      connectWith: '.page .story',
+      handle: '.handle'
+    });
   };
 
   initAddButton = function($page) {
@@ -1810,6 +1869,7 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
       rev: rev,
       site: $page.data('site')
     };
+
     createGhostPage = function() {
       var heading, hits, info, page, result, site, title, _ref1, _ref2;
       title = $("a[href=\"/" + slug + ".html\"]:last").text() || slug;
@@ -1848,6 +1908,7 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
             });
           }
         }
+
       }
       if (hits.length > 0) {
         (_ref2 = page.story).push.apply(_ref2, [heading].concat(__slice.call(hits)));
@@ -1893,7 +1954,6 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
   };
 
 }).call(this);
-
 });
 
 require.define("/lib/neighborhood.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {
@@ -1962,6 +2022,7 @@ require.define("/lib/neighborhood.coffee",function(require,module,exports,__dirn
     neighborInfo = {};
     wiki.neighborhood[site] = neighborInfo;
     populateSiteInfoFor(site, neighborInfo);
+
     return $('body').trigger('new-neighbor', site);
   };
 
@@ -2043,7 +2104,6 @@ require.define("/lib/neighborhood.coffee",function(require,module,exports,__dirn
   });
 
 }).call(this);
-
 });
 
 require.define("/lib/search.coffee",function(require,module,exports,__dirname,__filename,process,global){(function() {

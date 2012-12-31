@@ -55,7 +55,7 @@ wiki.registerPlugin = (pluginName,pluginFn)->
 
 window.plugins =
   paragraph:
-    emit: (div, item) -> div.append "<p>#{wiki.resolveLinks(item.text)}</p>"
+    emit: (div, item) -> div.append "<div class='handle'></div><p>#{wiki.resolveLinks(item.text)}</p>"
     bind: (div, item) ->
       div.dblclick -> wiki.textEditor div, item, null, true
   image:
