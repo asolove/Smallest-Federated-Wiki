@@ -1598,7 +1598,8 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
 
 	wiki.showMenu = function(opts){
 		// crap way to do this
-		$(".actionMenu").remove();
+		var old = $(".actionMenu").addClass("hidden");
+		setTimeout(function(){ old.remove(); }, 500);
 		
 		var c = opts.container;
 		var menu = $("<div></div>").addClass("actionMenu hidden");
