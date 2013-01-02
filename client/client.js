@@ -1615,6 +1615,27 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
 		});
 		return menu;
 	};
+	
+	$("html").on("click", ".page", function(e){
+		var el = $(this);
+		if(el.find(".actionMenu").length > 0){
+			el.addClass("showChrome");
+		} else {
+			el.toggleClass("showChrome");
+		}
+		
+		function hideLater(){
+			setTimeout(function(){
+				if(el.find(".actionMenu").length > 0){
+					hideLater();
+				} else {
+					el.removeClass("showChrome");
+				}
+			}, 5000);
+		}
+		
+		hideLater();
+	});
 
   window.plugins = {
     paragraph: {
@@ -1624,7 +1645,11 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
       bind: function(div, item) {
         return div.hammer().on("doubletap", function(e){
 					// only if page already selected
-					e.stopPropagation();
+					if(div.find("textarea").length == 0){
+						e.stopPropagation();
+						e.preventDefault();
+					}
+					console.log("double tap")
 					var menu = wiki.showMenu({
 						item: div,
 						parent: div.parents(".story"),
@@ -1770,7 +1795,7 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
   buildPageHeader = function(_arg) {
     var favicon_src, header_href, title, tooltip;
     title = _arg.title, tooltip = _arg.tooltip, header_href = _arg.header_href, favicon_src = _arg.favicon_src;
-		return "<header><div class='wrap'><strong>"+title+"</strong><a href=\"" + header_href + "\"><img src=\"" + favicon_src + "\" height=\"32px\" class=\"favicon\"></a></div></header>";
+		return "<header><div class='wrap'><strong>"+title+"</strong><a class='changeTitle'>✐</a><a href=\"" + header_href + "\"><img src=\"" + favicon_src + "\" height=\"32px\" class=\"favicon\"></a></div></header>";
   };
 
   emitHeader = function($page, page) {
