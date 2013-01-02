@@ -80,7 +80,9 @@ footer {
   bottom: 0; }
 
 .story {
-  padding-bottom: 5px; }
+  padding-bottom: 5px;
+	position: relative;
+}
 
 .data,
 .chart,
@@ -205,8 +207,7 @@ p.readout {
 	background-color:#f5f5f5;
 	border-left: 1px solid #ccd;
 	border-right: 1px solid #002;
-  padding: 0 31px;
-  width: 430px;
+  width: 490px;
   background-color: white;
   height: 100%;
 	overflow: scroll;
@@ -222,10 +223,7 @@ p.readout {
 	color: #222;
 	text-shadow: 1px 0px 1px #fff;
 	font-size: 30px;
-}
-
-.page h1 {
-  margin: 20px 30px;
+  margin: 20px 40px;
 }
 .page .journal,
 .page .footer {
@@ -370,26 +368,7 @@ textarea {
 
 .item { 
   position: relative;
-  padding: 5px 30px;
-}
-
-.handle {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  width: 28px;
-  cursor: move;
-}
-.handle::before {
-  display: block;
-  content: " ";
-  height: 100%;
-  width: 6px;
-  margin: 0px 11px;
-  background-color: #9cf;
-  border: 1px solid #8be;
-  visibility: hidden;
+  padding: 5px 40px;
 }
 
 .handle:hover::before {

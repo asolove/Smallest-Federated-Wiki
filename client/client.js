@@ -564,7 +564,7 @@ require.define("/lib/legacy.coffee",function(require,module,exports,__dirname,__
         id: util.randomBytes(8),
         text: initialText
       };
-      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "><div class='handle'></div></div>");
+      itemElement = $("<div class=\"item paragraph\" data-id=" + item.id + "></div>");
       itemElement.data('item', item).data('pageElement', pageElement);
       beforeElement.after(itemElement);
       plugin["do"](itemElement, item);
@@ -1601,14 +1601,14 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
 		var old = $(".actionMenu").addClass("hidden");
 		setTimeout(function(){ old.remove(); }, 500);
 		
-		var c = opts.container;
+		var item = opts.item;
 		var menu = $("<div></div>").addClass("actionMenu hidden");
 		opts.items.forEach(function(item){
 			$("<a></a>").text(item).appendTo(menu);
 		});
-		menu.appendTo("body");
-		var pos = c.position();
-		menu.css({ position: 'absolute', left: pos.left, top: pos.top - 48 });
+		menu.appendTo(opts.parent || "body");
+		var pos = item.position();
+		menu.css({ position: 'absolute', left: pos.left + 20, top: pos.top - 44 });
 		menu.removeClass("hidden");
 		menu.on("click", function(e){
 			menu.trigger($(e.target).text());
@@ -1622,16 +1622,19 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
         return div.append("<div class='handle'></div><p>" + (wiki.resolveLinks(item.text)) + "</p>");
       },
       bind: function(div, item) {
-        return div.dblclick(function() {
+        return div.hammer().on("tap", function(e){
+					// only if page already selected
+					e.stopPropagation();
 					var menu = wiki.showMenu({
-						container: div,
+						item: div,
+						parent: div.parents(".story"),
 						items: ["Edit", "Delete", "Move"]
 					});
 					menu.on("Edit", function(){
 						wiki.textEditor(div, item, null, true);
+						div.find("textarea").focus();
 						menu.remove();
 					});
-          // return wiki.textEditor(div, item, null, true);
         });
       }
     },
