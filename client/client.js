@@ -1622,7 +1622,7 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
         return div.append("<div class='handle'></div><p>" + (wiki.resolveLinks(item.text)) + "</p>");
       },
       bind: function(div, item) {
-        return div.hammer().on("tap", function(e){
+        return div.hammer().on("doubletap", function(e){
 					// only if page already selected
 					e.stopPropagation();
 					var menu = wiki.showMenu({
@@ -1631,8 +1631,7 @@ require.define("/lib/plugin.coffee",function(require,module,exports,__dirname,__
 						items: ["Edit", "Delete", "Move"]
 					});
 					menu.on("Edit", function(){
-						wiki.textEditor(div, item, null, true);
-						div.find("textarea").focus();
+						wiki.textEditor(div, item, null, false);
 						menu.remove();
 					});
         });
@@ -1771,7 +1770,7 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
   buildPageHeader = function(_arg) {
     var favicon_src, header_href, title, tooltip;
     title = _arg.title, tooltip = _arg.tooltip, header_href = _arg.header_href, favicon_src = _arg.favicon_src;
-    return "<h1 title=\"" + tooltip + "\"><a href=\"" + header_href + "\"><img src=\"" + favicon_src + "\" height=\"32px\" class=\"favicon\"></a> " + title + "</h1>";
+		return "<header><div class='wrap'><strong>"+title+"</strong><a href=\"" + header_href + "\"><img src=\"" + favicon_src + "\" height=\"32px\" class=\"favicon\"></a></div></header>";
   };
 
   emitHeader = function($page, page) {
@@ -1826,9 +1825,16 @@ require.define("/lib/refresh.coffee",function(require,module,exports,__dirname,_
     }
     wiki.resolutionContext = context;
     emitHeader($page, page);
+
+		var $c = $("<div class='story-scroll-container'></div>").appendTo($page);
     _ref1 = ['story', 'journal', 'footer'].map(function(className) {
-      return $("<div />").addClass(className).appendTo($page);
+      return $("<div />").addClass(className).appendTo($c);
     }), $story = _ref1[0], $journal = _ref1[1], $footer = _ref1[2];
+
+		// emit title
+		$story.append("<h1 title=\"" + page.tooltip + "\">" + page.title + "</h1>");
+		
+
     emitItem = function(i) {
       var $item, item;
       if (i >= page.story.length) {
